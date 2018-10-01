@@ -39,17 +39,9 @@ ext {
 android {
     compileSdkVersion 28
 
-    defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.9.2"
-    }
-    buildTypes {
-        debug{}
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    externalNativeBuild {
+        ndkBuild {
+            path file('src/main/jni/Android.mk')
         }
     }
 
@@ -59,20 +51,20 @@ android {
             jniLibs.srcDir 'src/main/libs'
         }
     }
-
-    packagingOptions{
-        pickFirst 'lib/x86_64/*'
-        pickFirst 'lib/armeabi-v7a/*'
-        pickFirst 'lib/x86/*'
-        pickFirst 'lib/arm64-v8a/*'
-
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.9.2"
     }
-    externalNativeBuild {
-        ndkBuild {
-            path file('src/main/jni/Android.mk')
+
+    buildTypes {
+        debug{}
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 repositories {
