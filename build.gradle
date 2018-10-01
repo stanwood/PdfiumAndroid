@@ -12,29 +12,6 @@ buildscript {
 
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
-ext {
-    bintrayRepo = 'maven'
-    bintrayName = 'pdfium-android'
-
-    publishedGroupId = 'com.github.barteksc'
-    libraryName = 'PdfiumAndroid'
-    artifact = 'pdfium-android'
-
-    libraryDescription = 'Fork of library for rendering PDFs on Android\'s Surface or Bitmap'
-
-    siteUrl = 'https://github.com/barteksc/PdfiumAndroid'
-    gitUrl = 'https://github.com/barteksc/PdfiumAndroid.git'
-
-    libraryVersion = '1.9.0'
-
-    developerId = 'barteksc'
-    developerName = 'Bartosz Schiller'
-    developerEmail = 'barteksch@boo.pl'
-
-    licenseName = 'The Apache Software License, Version 2.0'
-    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-    allLicenses = ["Apache-2.0"]
-}
 
 android {
     compileSdkVersion 28
