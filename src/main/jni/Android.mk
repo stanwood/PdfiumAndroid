@@ -35,7 +35,7 @@ include $(PREBUILT_SHARED_LIBRARY)
 
 #Main JNI library
 include $(CLEAR_VARS)
-LOCAL_MODULE := jni_pdfium
+LOCAL_MODULE := jniPdfium
 
 LOCAL_CFLAGS += -DHAVE_PTHREADS
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include
