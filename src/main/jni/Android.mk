@@ -26,7 +26,6 @@ LOCAL_SRC_FILES := $(LOCAL_PATH)/lib/$(ARCH_PATH)/libmodft2.so
 
 include $(PREBUILT_SHARED_LIBRARY)
 
-#libmodpng
 include $(CLEAR_VARS)
 LOCAL_MODULE := libmodpng
 
@@ -36,7 +35,7 @@ include $(PREBUILT_SHARED_LIBRARY)
 
 #Main JNI library
 include $(CLEAR_VARS)
-LOCAL_MODULE := jniPdfium
+LOCAL_MODULE := jni_pdfium
 
 LOCAL_CFLAGS += -DHAVE_PTHREADS
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include
