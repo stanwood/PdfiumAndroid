@@ -39,6 +39,11 @@ ext {
 android {
     compileSdkVersion 28
 
+
+    packagingOptions{
+        pickFirst 'lib/**/*'
+    }
+
     externalNativeBuild {
         ndkBuild {
             path file('src/main/jni/Android.mk')
