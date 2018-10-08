@@ -42,6 +42,6 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)/include
 LOCAL_SHARED_LIBRARIES += aospPdfium
 LOCAL_LDLIBS += -llog -landroid -ljnigraphics
 
-LOCAL_SRC_FILES :=  $(LOCAL_PATH)/src/mainJNILib.cpp
+LOCAL_SRC_FILES := $(LOCAL_PATH)/src/PdfUtils.cpp $(LOCAL_PATH)/src/mainJNILib.cpp
 
 include $(BUILD_SHARED_LIBRARY)
