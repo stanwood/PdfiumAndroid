@@ -1,4 +1,4 @@
-package com.shockwave.pdfium;
+package io.stanwood.pdfium;
 
 public class PdfMetaInfo {
     public final String title;
@@ -9,6 +9,7 @@ public class PdfMetaInfo {
     public final String producer;
     public final String creationDate;
     public final String modDate;
+
     PdfMetaInfo(String title,
                 String author,
                 String subject,

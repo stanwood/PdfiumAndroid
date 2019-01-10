@@ -1,4 +1,4 @@
-package com.shockwave.pdfium;
+package io.stanwood.pdfium;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -73,6 +73,8 @@ public class PdfDocument implements Closeable {
             return -1;
         }
     }
+
+    private static native long nativeInit();
 
     private void initDocument(long nativePtr) {
         synchronized (lock) {
@@ -194,13 +196,81 @@ public class PdfDocument implements Closeable {
         }
     }
 
+    private native long nativeGetFileSize(int fd);
+
+    private native long nativeOpen(int fd, long size, String password);
+
+    private native void nativeClose(long documentPtr);
+
+    private native long nativeOpenPageAndGetSize(long documentPtr, int pageIndex, Point outSize);
+
+    private native boolean nativeScaleForPrinting(long documentPtr);
+
+    private native int nativeGetPageCount(long docPtr);
+
+    private native long nativeTextLoadPage(long page);
+
+    private native long nativeTextFindStart(long textPage, String findWhat, int flags, int startIndex);
+
+    private native boolean nativeTextFindNext(long handle);
+
+    private native boolean nativeTextFindPrev(long handle);
+
+    private native int nativeTextGetSchResultIndex(long handle);
+
+    protected native int nativeTextGetSchCount(long handle);
+
+    private native String nativeTextGetText(long textPage, int start, int count);
+
+    private native void nativeTextGetRect(long textPage, int index, RectF outRect);
+
+    private native int nativeTextCountRects(long textPage, int start, int count);
+
+    private native int nativeTextCountChars(long textPage);
+
+    private native void nativeTextFindClose(long handle);
+
+    private native void nativeTextClosePage(long textPage);
+
+    private native long nativeOpenByteArray(byte[] data, String password);
+
+    private native void nativeClosePage(long pagePtr);
+
+    private native void nativeRenderPage(long pagePtr, Surface surface, int startX, int startY, int drawSizeHor, int drawSizeVer, boolean renderAnnot);
+
+    private native void nativeRenderPageBitmap(long pagePtr, Bitmap bitmap, int startX, int startY, int drawSizeHor, int drawSizeVer, long backgroundColor, boolean renderAnnot);
+
+    private native String nativeGetMetaText(long docPtr, String tag);
+
+    private native long nativeGetFirstChildBookmark(long docPtr, long bookmarkPtr);
+
+    private native long nativeGetSiblingBookmark(long docPtr, long bookmarkPtr);
+
+    private native String nativeGetBookmarkTitle(long bookmarkPtr);
+
+    private native long nativeGetBookmarkDestIndex(long docPtr, long bookmarkPtr);
+
+    private native void nativeGetPageSizeByIndex(long docPtr, int pageIndex, Point outSize);
+
+    private native long[] nativeGetPageLinks(long pagePtr);
+
+    private native long nativeGetDestPageIndex(long docPtr, long linkPtr);
+
+    private native String nativeGetLinkURI(long docPtr, long linkPtr);
+
+    private native boolean nativeGetLinkRect(long linkPtr, RectF outRect);
+
+    private native void nativePageCoordsToDevice(long pagePtr, int startX, int startY, int sizeX, int sizeY, int rotate, double pageX, double pageY, Point outSize);
+
+    private native void nativePageRectToDevice(long pagePtr, int startX, int startY, int sizeX, int sizeY, int rotate, float left, float top, float right, float bottom, RectF outRect);
+
     public static class PdfSearchResult {
         public final int startIndex;
         public final int length;
 
-        PdfSearchResult(long searchPtr) {
-            length = nativeTextGetSchCount(searchPtr);
-            startIndex = nativeTextGetSchResultIndex(searchPtr);
+        PdfSearchResult(int startIndex, int length) {
+            this.startIndex = startIndex;
+            this.length = length;
         }
     }
 
@@ -217,7 +287,7 @@ public class PdfDocument implements Closeable {
         public PdfSearchResult findNext() {
             synchronized (lock) {
                 if (nativeTextFindNext(mNativePtr)) {
-                    return new PdfSearchResult(mNativePtr);
+                    return new PdfSearchResult(nativeTextGetSchResultIndex(mNativePtr), nativeTextGetSchCount(mNativePtr));
                 }
                 return null;
             }
@@ -227,7 +297,7 @@ public class PdfDocument implements Closeable {
         public PdfSearchResult findPrev() {
             synchronized (lock) {
                 if (nativeTextFindPrev(mNativePtr)) {
-                    return new PdfSearchResult(mNativePtr);
+                    return new PdfSearchResult(nativeTextGetSchResultIndex(mNativePtr), nativeTextGetSchCount(mNativePtr));
                 }
                 return null;
             }
@@ -333,9 +403,9 @@ public class PdfDocument implements Closeable {
     }
 
     public final class PdfPage implements Closeable {
-        private final int index;
-        private final int width;
-        private final int height;
+        public final int index;
+        public final int width;
+        public final int height;
         private long mNativePtr;
 
         PdfPage(long documentPtr, int index) {
@@ -420,16 +490,20 @@ public class PdfDocument implements Closeable {
         }
 
         /**
-         * @return mapped coordinates
          * @see PdfPage#mapPageCoordsToDevice(int, int, int, int, int, double, double)
          */
-        public RectF mapRectToDevice(int startX, int startY, int sizeX, int sizeY, int rotate, RectF coords) {
+        public void mapRectToDevice(int startX, int startY, int sizeX, int sizeY, int rotate, RectF rect) {
             synchronized (lock) {
-                Point leftTop = mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate,
-                        coords.left, coords.top);
-                Point rightBottom = mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate,
-                        coords.right, coords.bottom);
-                return new RectF(leftTop.x, leftTop.y, rightBottom.x, rightBottom.y);
+                nativePageRectToDevice(mNativePtr, startX, startY, sizeX, sizeY, rotate, rect.left, rect.top, rect.right, rect.bottom, rect);
+            }
+        }
+
+        public void mapRectToDevice(int startX, int startY, int sizeX, int sizeY, int rotate, List<RectF> rects) {
+            synchronized (lock) {
+                for (int size = rects.size(), i = 0; i < size; i++) {
+                    RectF rect = rects.get(i);
+                    nativePageRectToDevice(mNativePtr, startX, startY, sizeX, sizeY, rotate, rect.left, rect.top, rect.right, rect.bottom, rect);
+                }
             }
         }
 
@@ -454,73 +528,4 @@ public class PdfDocument implements Closeable {
             }
         }
     }
-
-    private static native long nativeInit();
-
-    private static native long nativeGetFileSize(int fd);
-
-    private static native long nativeOpen(int fd, long size, String password);
-
-    private static native void nativeClose(long documentPtr);
-
-    private static native long nativeOpenPageAndGetSize(long documentPtr, int pageIndex, Point outSize);
-
-    private static native boolean nativeScaleForPrinting(long documentPtr);
-
-    private static native int nativeGetPageCount(long docPtr);
-
-    private static native long nativeTextLoadPage(long page);
-
-    private static native long nativeTextFindStart(long textPage, String findWhat, int flags, int startIndex);
-
-    private static native boolean nativeTextFindNext(long handle);
-
-    private static native boolean nativeTextFindPrev(long handle);
-
-    private static native int nativeTextGetSchResultIndex(long handle);
-
-    private static native int nativeTextGetSchCount(long handle);
-
-    private static native String nativeTextGetText(long textPage, int start, int count);
-
-    private static native void nativeTextGetRect(long textPage, int index, RectF outRect);
-
-    private static native int nativeTextCountRects(long textPage, int start, int count);
-
-    private static native int nativeTextCountChars(long textPage);
-
-    private static native void nativeTextFindClose(long handle);
-
-    private static native void nativeTextClosePage(long textPage);
-
-    private native long nativeOpenByteArray(byte[] data, String password);
-
-    private native void nativeClosePage(long pagePtr);
-
-    private native void nativeRenderPage(long pagePtr, Surface surface, int startX, int startY, int drawSizeHor, int drawSizeVer, boolean renderAnnot);
-
-    private native void nativeRenderPageBitmap(long pagePtr, Bitmap bitmap, int startX, int startY, int drawSizeHor, int drawSizeVer, long backgroundColor, boolean renderAnnot);
-
-    private native String nativeGetMetaText(long docPtr, String tag);
-
-    private native long nativeGetFirstChildBookmark(long docPtr, long bookmarkPtr);
-
-    private native long nativeGetSiblingBookmark(long docPtr, long bookmarkPtr);
-
-    private native String nativeGetBookmarkTitle(long bookmarkPtr);
-
-    private native long nativeGetBookmarkDestIndex(long docPtr, long bookmarkPtr);
-
-    private native void nativeGetPageSizeByIndex(long docPtr, int pageIndex, Point outSize);
-
-    private native long[] nativeGetPageLinks(long pagePtr);
-
-    private native long nativeGetDestPageIndex(long docPtr, long linkPtr);
-
-    private native String nativeGetLinkURI(long docPtr, long linkPtr);
-
-    private native boolean nativeGetLinkRect(long linkPtr, RectF outRect);
-
-    private native void nativePageCoordsToDevice(long pagePtr, int startX, int startY, int sizeX, int sizeY, int rotate, double pageX, double pageY, Point outSize);
-
 }
