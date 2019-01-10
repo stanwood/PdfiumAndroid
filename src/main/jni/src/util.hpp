@@ -4,10 +4,10 @@
 #include <jni.h>
 
 extern "C" {
-#include <stdlib.h>
+#include <cstdlib>
 }
 
-#define JNI_FUNC(retType, bindClass, name)  JNIEXPORT retType JNICALL Java_com_shockwave_pdfium_##bindClass##_##name
+#define JNI_FUNC(retType, bindClass, name)  JNIEXPORT retType JNICALL Java_io_stanwood_pdfium_##bindClass##_##name
 #define JNI_ARGS JNIEnv *env, jobject thiz
 
 #define LOG_TAG "jniPdfium"

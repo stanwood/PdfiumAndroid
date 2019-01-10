@@ -1,4 +1,4 @@
-package com.shockwave.pdfium;
+package io.stanwood.pdfium;
 
 import java.io.IOException;
 
